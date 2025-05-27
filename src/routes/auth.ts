@@ -2,12 +2,13 @@ import { Router, Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
 import { verifyInitData } from '../utils/verifyInitData'
 import { TelegramUser } from '../types/telegram'
+import { findOrCreateUser } from '../services/user'
 
 const router = Router()
 
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecret'
 
-router.post('/', (req: Request, res: Response, _next: NextFunction) => {
+router.post('/', async (req: Request, res: Response, _next: NextFunction) => {
   const { initData } = req.body
 
   if (!initData || !verifyInitData(initData)) {
@@ -28,6 +29,15 @@ router.post('/', (req: Request, res: Response, _next: NextFunction) => {
     user = JSON.parse(userRaw)
   } catch {
     res.status(400).json({ error: 'Invalid user data' })
+    return
+  }
+
+  // Ensure user exists in database
+  try {
+    await findOrCreateUser(user.id.toString())
+  } catch (err) {
+    console.error('Error in findOrCreateUser:', err)
+    res.status(500).json({ error: 'Internal server error' })
     return
   }
 
