@@ -1,18 +1,11 @@
 import { Router, Request, Response, NextFunction } from 'express'
+import jwt from 'jsonwebtoken'
 import { verifyInitData } from '../utils/verifyInitData'
 import { TelegramUser } from '../types/telegram'
 
 const router = Router()
 
-interface UserRecord {
-  id: number
-  username?: string
-  first_name: string
-  balance: number
-}
-
-// TODO: In-memory users (позже заменим на БД)
-const users = new Map<number, UserRecord>()
+const JWT_SECRET = process.env.JWT_SECRET || 'supersecret'
 
 router.post('/', (req: Request, res: Response, _next: NextFunction) => {
   const { initData } = req.body
@@ -38,18 +31,9 @@ router.post('/', (req: Request, res: Response, _next: NextFunction) => {
     return
   }
 
-  // Создаём пользователя если нет
-  if (!users.has(user.id)) {
-    users.set(user.id, {
-      id: user.id,
-      username: user.username,
-      first_name: user.first_name,
-      balance: 0,
-    })
-  }
+  const token = jwt.sign(user, JWT_SECRET, { expiresIn: '7d' })
 
-  res.json({ user: users.get(user.id) })
-  return
+  res.json({ token, user })
 })
 
 export default router

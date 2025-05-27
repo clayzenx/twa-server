@@ -6,6 +6,7 @@ import bodyParser from 'body-parser'
 dotenv.config()
 
 import authRoutes from './routes/auth'
+import profileRoutes from './routes/profile'
 
 const app = express()
 app.use(cors())
@@ -13,6 +14,7 @@ app.use(express.json())
 app.use(bodyParser.json())
 
 app.use('/auth', authRoutes)
+app.use('/profile', profileRoutes)
 
 app.get('/', (req, res) => {
   res.send('Backend is running!')
