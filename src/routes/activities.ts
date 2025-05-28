@@ -29,6 +29,37 @@ router.get('/', authenticateJWT, async (req: Request, res: Response) => {
   )
   res.json(activities);
 })
+/**
+ * GET /activities/:id
+ * Returns availability info for a single activity. Accepts query params for conditional availability.
+ */
+router.get('/:id', authenticateJWT, async (req: Request, res: Response) => {
+  const { id } = req.params
+  const activity = getActivityById(id)
+  if (!activity) {
+    res.status(404).json({ error: 'Activity not found' })
+    return
+  }
+  const userPayload = req.user as UserJwtPayload
+  const user = await findOrCreateUser(userPayload.id.toString())
+  // Extract conditional args from query string
+  const args = req.query as Record<string, any>
+  try {
+    const { available, nextAvailableAt, reason } = await canPerformActivity(user.id, activity, args)
+    res.json({
+      id: activity.id,
+      name: activity.name,
+      reward: activity.reward,
+      availability: activity.availability,
+      available,
+      nextAvailableAt: nextAvailableAt?.toISOString(),
+      reason,
+    })
+  } catch (err) {
+    console.error('Error checking activity availability:', err)
+    res.status(500).json({ error: 'Internal server error' })
+  }
+})
 
 /**
  * POST /activities/reward
@@ -36,7 +67,8 @@ router.get('/', authenticateJWT, async (req: Request, res: Response) => {
  * Rewards the authenticated user if the activity is available.
  */
 router.post('/reward', authenticateJWT, async (req: Request, res: Response) => {
-  const { id } = req.body
+  // Expect body: { id: string, args?: Record<string, any> }
+  const { id, args } = req.body as { id?: string; args?: Record<string, any> }
   if (!id || typeof id !== 'string') {
     res.status(400).json({ error: 'Missing activity id' })
     return
@@ -51,12 +83,12 @@ router.post('/reward', authenticateJWT, async (req: Request, res: Response) => {
   const userPayload = req.user as UserJwtPayload
   try {
     const user = await findOrCreateUser(userPayload.id.toString())
-    const { available, nextAvailableAt } = await canPerformActivity(user.id, activity)
+    const { available, nextAvailableAt, reason } = await canPerformActivity(user.id, activity, args)
     if (!available) {
-      res.status(403).json({ error: 'Activity not available', nextAvailableAt })
+      res.status(403).json({ error: reason || 'Activity not available', nextAvailableAt })
       return
     }
-    await recordActivity(user.id, activity.id)
+    await recordActivity(user.id, activity.id, args)
     const updatedUser = await incrementUserBalance(user.id, activity.reward)
     // Re-check availability for response
     const next = await canPerformActivity(user.id, activity)

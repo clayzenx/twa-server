@@ -22,6 +22,8 @@ model UserActivity {
   userId      Int
   activityId  String
   consumedAt  DateTime @default(now())
+  /// Arbitrary metadata for conditional activities (e.g. referral code)
+  meta        Json?
 
   user        User     @relation(fields: [userId], references: [id])
 

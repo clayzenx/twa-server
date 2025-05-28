@@ -1,3 +1,4 @@
+// Availability rules: 'once', 'daily', or 'conditional' for custom logic
 export type AvailabilityType = 'once' | 'daily' | 'conditional';
 
 /**
@@ -15,7 +16,7 @@ export const ACTIVITIES: Activity[] = [
   { id: 'welcome', name: 'Welcome bonus', reward: 10, availability: 'once' },
   { id: 'daily_login', name: 'Daily Login Bonus', reward: 5, availability: 'daily' },
   { id: 'referral', name: 'Referral bonus', reward: 20, availability: 'conditional' },
-  // Add more activities with appropriate availability ('once' | 'daily' | 'conditional')
+  // Add more activities with availability: 'once', 'daily', or 'conditional'
 ];
 
 /**
