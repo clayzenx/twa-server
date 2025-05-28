@@ -6,7 +6,6 @@ const router = express.Router()
 
 router.get('/', authenticateJWT, (req, res) => {
   const user = req.user as UserJwtPayload
-  console.log('/me user', user);
   res.json({ user })
 })
 

@@ -17,11 +17,11 @@ const router = express.Router()
  */
 router.get('/', authenticateJWT, (req: Request, res: Response) => {
   const activities = getAvailableActivities().map(a => ({
+    id: a.id,
     token: encodeActivityToken(a.id),
     name: a.name,
     reward: a.reward,
   }))
-  console.log('activities', activities)
   res.json(activities)
 })
 
@@ -32,7 +32,6 @@ router.get('/', authenticateJWT, (req: Request, res: Response) => {
  */
 router.post('/reward', authenticateJWT, async (req: Request, res: Response) => {
   const { token } = req.body
-  console.log('reward req', req, req.body);
   if (!token || typeof token !== 'string') {
     res.status(400).json({ error: 'Missing activity token' })
     return
