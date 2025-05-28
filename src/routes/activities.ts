@@ -31,18 +31,9 @@ router.get('/', authenticateJWT, (req: Request, res: Response) => {
  * Rewards the authenticated user with the specified activity.
  */
 router.post('/reward', authenticateJWT, async (req: Request, res: Response) => {
-  const { token } = req.body
-  if (!token || typeof token !== 'string') {
-    res.status(400).json({ error: 'Missing activity token' })
-    return
-  }
-
-  let activityId: string
-  try {
-    activityId = decodeActivityToken(token)
-  } catch (err) {
-    console.error('Failed to decode activity token:', err)
-    res.status(400).json({ error: 'Invalid or expired activity token' })
+  const { activityId } = req.body
+  if (!activityId || typeof activityId !== 'string') {
+    res.status(400).json({ error: 'Missing activity id' })
     return
   }
 
