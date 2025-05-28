@@ -12,4 +12,18 @@ model User {
   telegramId String   @unique
   balance    Float    @default(0)
   createdAt  DateTime @default(now())
+  /// Related activity consumptions
+  userActivities UserActivity[]
+}
+
+/// Records when a user consumes an activity reward
+model UserActivity {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  activityId  String
+  consumedAt  DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, activityId])
 }
