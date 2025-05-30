@@ -2,7 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
 import { verifyInitData } from '../utils/verifyInitData'
 import { TelegramUser } from '../types/telegram'
-import { findOrCreateUser } from '../services/user'
+import { upsertTelegramUser } from '../services/user'
 
 const router = Router()
 
@@ -32,11 +32,13 @@ router.post('/', async (req: Request, res: Response, _next: NextFunction) => {
     return
   }
 
-  // Ensure user exists in database
+  console.log('/auth', user);
+
+  // Upsert Telegram user profile (create or update fields)
   try {
-    await findOrCreateUser(user.id.toString())
+    await upsertTelegramUser(user)
   } catch (err) {
-    console.error('Error in findOrCreateUser:', err)
+    console.error('Error in upserting Telegram user:', err)
     res.status(500).json({ error: 'Internal server error' })
     return
   }

@@ -30,7 +30,6 @@ const conditionalHandlers: Record<string, ConditionalHandler> = {
     }
     // current user record to get their telegramId
     const user = await prisma.user.findUnique({ where: { id: userId } })
-    console.log('user', user);
 
     if (!user) {
       return { available: false, reason: 'User not found' }

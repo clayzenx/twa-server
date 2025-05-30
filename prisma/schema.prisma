@@ -9,8 +9,13 @@ datasource db {
 
 model User {
   id         Int      @id @default(autoincrement())
-  telegramId String   @unique
-  balance    Float    @default(0)
+  telegramId  String   @unique
+  firstName   String?
+  lastName    String?
+  username    String?
+  languageCode String?
+  photoUrl    String?
+  balance     Float    @default(0)
   createdAt  DateTime @default(now())
   /// Related activity consumptions
   userActivities UserActivity[]
