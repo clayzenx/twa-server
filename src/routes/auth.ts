@@ -2,7 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
 import { verifyInitData } from '../utils/verifyInitData'
 import { TelegramUser } from '../types/telegram'
-import { upsertTelegramUser } from '../services/user'
+import { parseCookies } from '../utils/cookies'
 
 const router = Router()
 
@@ -32,19 +32,29 @@ router.post('/', async (req: Request, res: Response, _next: NextFunction) => {
     return
   }
 
-  console.log('/auth', user);
-
-  // Upsert Telegram user profile (create or update fields)
-  try {
-    await upsertTelegramUser(user)
-  } catch (err) {
-    console.error('Error in upserting Telegram user:', err)
-    res.status(500).json({ error: 'Internal server error' })
-    return
+  // if no valid JWT cookie, issue a new token and set it
+  const cookies = parseCookies(req.headers.cookie)
+  let token = cookies['token']
+  let needNew = true
+  if (token) {
+    try {
+      jwt.verify(token, JWT_SECRET)
+      needNew = false
+    } catch {
+      needNew = true
+    }
   }
-
-  const token = jwt.sign(user, JWT_SECRET, { expiresIn: '7d' })
-
+  if (needNew) {
+    token = jwt.sign(user, JWT_SECRET, { expiresIn: '7d' })
+    // set cookie for client persistence
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    })
+  }
+  // return token and user data
   res.json({ token, user })
 })
 

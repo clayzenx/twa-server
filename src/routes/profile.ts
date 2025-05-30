@@ -1,20 +1,22 @@
 import express, { Request, Response } from 'express'
 import { authenticateJWT } from '../middleware/auth'
-import { UserJwtPayload } from '../types/auth'
-import { findOrCreateUser } from '../services/user'
+import { loadUser } from '../middleware/userLoader'
 
 const router = express.Router()
 
-router.get('/', authenticateJWT, async (req: Request, res: Response) => {
-  const userPayload = req.user as UserJwtPayload
-  try {
-    const user = await findOrCreateUser(userPayload.id.toString())
-    res.json({ user })
-  } catch (err) {
-    console.error('Error fetching user from DB:', err)
-    res.status(500).json({ error: 'Internal server error' })
+/**
+ * GET /profile
+ * Requires a valid JWT cookie and a Telegram initData header on every request.
+ * Uses loadUser middleware to upsert and load the Prisma User record.
+ */
+router.get(
+  '/',
+  authenticateJWT,
+  loadUser({ requireInitData: true }),
+  (req: Request, res: Response) => {
+    res.json({ user: req.dbUser })
   }
-})
+)
 
 export default router
 
