@@ -9,8 +9,16 @@ const JWT_SECRET = process.env.JWT_SECRET || 'supersecret'
  * Middleware to authenticate a user based on a JWT stored in cookies.
  */
 export function authenticateJWT(req: Request, res: Response, next: NextFunction) {
+  // First try to read JWT from httpOnly cookie
   const cookies = parseCookies(req.headers.cookie)
-  const token = cookies['token']
+  let token = cookies['token']
+  // Fallback: check Authorization header for Bearer token
+  const authHeader = typeof req.headers.authorization === 'string'
+    ? req.headers.authorization
+    : undefined
+  if (!token && authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.slice(7)
+  }
   if (!token) {
     res.status(401).json({ error: 'Missing auth token' })
     return

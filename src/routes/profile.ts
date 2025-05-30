@@ -14,7 +14,7 @@ router.get(
   authenticateJWT,
   loadUser({ requireInitData: true }),
   (req: Request, res: Response) => {
-    res.json({ user: req.dbUser })
+    res.json(req.dbUser)
   }
 )
 

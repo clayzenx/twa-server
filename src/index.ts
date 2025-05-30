@@ -9,8 +9,36 @@ import authRoutes from './routes/auth'
 import profileRoutes from './routes/profile'
 import activitiesRoutes from './routes/activities'
 
+const FRONTEND = process.env.FRONTEND_ORIGIN
+
+// Allowed request origins (env FRONTEND_ORIGIN, localhost, and GitHub Pages)
+const ORIGINS = [
+  FRONTEND,
+  'http://localhost:4000',
+  'https://clayzenx.github.io',
+]
+
 const app = express()
-app.use(cors())
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // если запрос не из браузера (Postman) – пропускаем
+    if (!origin) return callback(null, true)
+    if (ORIGINS.includes(origin)) {
+      callback(null, true)
+    } else {
+      callback(new Error(`CORS: Origin ${origin} not allowed`))
+    }
+  },
+  credentials: true,            // разрешаем отдавать и принимать куки
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'x-telegram-initdata',
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+}))
+
 app.use(express.json())
 app.use(bodyParser.json())
 
