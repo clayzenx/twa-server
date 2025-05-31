@@ -96,7 +96,8 @@ router.post(
     try {
       const { available, nextAvailableAt, reason } = await canPerformActivity(user.id, activity, args)
       if (!available) {
-        res.status(403).json({ error: reason || 'Activity not available', nextAvailableAt })
+        // Business logic: activity not available
+        res.status(409).json({ error: reason || 'Activity not available', nextAvailableAt })
         return
       }
       await recordActivity(user.id, activity.id, args)
