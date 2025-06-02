@@ -1,9 +1,7 @@
 import express, { Request, Response } from 'express'
-import { authenticateJWT } from '../middleware/auth'
+import { authenticateJWT } from '../middleware/jwtAuthentication'
 import { loadUser } from '../middleware/userLoader'
-import { getAvailableActivities, getActivityById } from '../services/activity'
-import { canPerformActivity } from '../services/userActivity'
-import { rewardActivity, ActivityUnavailableError, ActivityNotFoundError } from '../services/activityRewards'
+import { getAvailableActivities, getActivityById, canPerformActivity, rewardActivity, ActivityUnavailableError, ActivityNotFoundError } from '../services/activity'
 
 const router = express.Router()
 

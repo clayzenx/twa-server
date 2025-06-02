@@ -1,21 +1,18 @@
 import { Request, Response, NextFunction } from 'express'
 import jwt, { TokenExpiredError } from 'jsonwebtoken'
-import { TelegramUser } from '../types/telegram'
 import { parseCookies } from '../utils/cookies'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecret'
 
 /**
- * Middleware to authenticate a user based on a JWT stored in cookies/request header.
+ * Middleware to authenticate a user based on a JWT stored in cookies or Authorization header.
  */
 export function authenticateJWT(req: Request, res: Response, next: NextFunction) {
-  // First try to read JWT from httpOnly cookie
+  // Try to read JWT from httpOnly cookie
   const cookies = parseCookies(req.headers.cookie)
   let token = cookies['token']
-  // Fallback: check Authorization header for Bearer token
-  const authHeader = typeof req.headers.authorization === 'string'
-    ? req.headers.authorization
-    : undefined
+  // Fallback: Authorization header
+  const authHeader = typeof req.headers.authorization === 'string' ? req.headers.authorization : undefined
   if (!token && authHeader && authHeader.startsWith('Bearer ')) {
     token = authHeader.slice(7)
   }
@@ -25,7 +22,7 @@ export function authenticateJWT(req: Request, res: Response, next: NextFunction)
   }
 
   try {
-    const user = jwt.verify(token, JWT_SECRET) as TelegramUser
+    const user = jwt.verify(token, JWT_SECRET) as import('../types/telegram').TelegramUser
     req.user = user
     next()
   } catch (err: unknown) {
@@ -36,4 +33,3 @@ export function authenticateJWT(req: Request, res: Response, next: NextFunction)
     res.status(403).json({ error: 'Invalid auth token' })
   }
 }
-
