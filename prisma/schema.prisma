@@ -8,29 +8,34 @@ datasource db {
 }
 
 model User {
-  id         Int      @id @default(autoincrement())
-  telegramId  String   @unique
-  firstName   String?
-  lastName    String?
-  username    String?
-  languageCode String?
-  photoUrl    String?
-  balance     Float    @default(0)
-  createdAt  DateTime @default(now())
+  id             Int            @id @default(autoincrement())
+  telegramId     String         @unique
+  firstName      String?
+  lastName       String?
+  username       String?
+  languageCode   String?
+  photoUrl       String?
+  // Self-referral relation: who referred this user
+  referredById   Int?
+  referredBy     User?          @relation("ReferralRelation", fields: [referredById], references: [id])
+  // Users referred by this user
+  referrals      User[]         @relation("ReferralRelation")
+  balance        Float          @default(0)
+  createdAt      DateTime       @default(now())
   /// Related activity consumptions
   userActivities UserActivity[]
 }
 
 /// Records when a user consumes an activity reward
 model UserActivity {
-  id          Int      @id @default(autoincrement())
-  userId      Int
-  activityId  String
-  consumedAt  DateTime @default(now())
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  activityId String
+  consumedAt DateTime @default(now())
   /// Arbitrary metadata for conditional activities (e.g. referral code)
-  meta        Json?
+  meta       Json?
 
-  user        User     @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 
   @@index([userId, activityId])
 }

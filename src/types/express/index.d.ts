@@ -1,10 +1,10 @@
 // types/express/index.d.ts
-import { UserJwtPayload } from '../../types/auth' // если есть отдельный тип user
+import { TelegramUser } from '../../types/telegram'
 
 declare global {
   namespace Express {
     interface Request {
-      user?: UserJwtPayload
+      user?: TelegramUser
     }
   }
 }

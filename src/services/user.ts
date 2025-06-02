@@ -8,7 +8,31 @@ import type { TelegramUser } from '../types/telegram'
  * @returns Prisma User or null
  */
 export async function getUserByTelegramId(telegramId: string): Promise<User | null> {
-  return prisma.user.findUnique({ where: { telegramId } })
+  return prisma.user.findUnique({
+    where: { telegramId },
+    include: {
+      // Users referred by this user
+      referrals: true,
+      // The user who referred this user (if any)
+      referredBy: true,
+    },
+  })
+}
+/**
+ * Set the referrer for a user (self-referral relationship).
+ * @param userId ID of the user being referred
+ * @param referrerId ID of the user who referred
+ * @returns Updated User record
+ */
+export async function setUserReferredBy(userId: number, referrerId: number): Promise<User> {
+  return prisma.user.update({
+    where: { id: userId },
+    data: { referredById: referrerId },
+    include: {
+      referrals: true,
+      referredBy: true,
+    },
+  })
 }
 
 /**
@@ -40,6 +64,10 @@ export async function upsertTelegramUser(tgUser: TelegramUser): Promise<User> {
       username: tgUser.username,
       languageCode: tgUser.language_code,
       photoUrl: tgUser.photo_url,
+    },
+    include: {
+      referrals: true,
+      referredBy: true,
     },
   })
 }

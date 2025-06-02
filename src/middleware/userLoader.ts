@@ -1,9 +1,10 @@
 import { Request, Response, NextFunction } from 'express'
-import { UserJwtPayload } from '../types/auth'
 import { verifyInitData } from '../utils/verifyInitData'
 import { upsertTelegramUser, getUserByTelegramId } from '../services/user'
 import type { TelegramUser } from '../types/telegram'
 import type { User } from '@prisma/client'
+
+const TAG = '[userLoader]';
 
 // Extend Express Request to include dbUser
 declare global {
@@ -21,7 +22,7 @@ declare global {
  */
 export function loadUser(options: { requireInitData: boolean }) {
   return async (req: Request, res: Response, next: NextFunction) => {
-    const jwtUser = req.user as UserJwtPayload
+    const jwtUser = req.user as TelegramUser
     const initDataHeader = req.headers['x-telegram-initdata']
     let dbUser: User | null = null
 
@@ -51,7 +52,7 @@ export function loadUser(options: { requireInitData: boolean }) {
       try {
         dbUser = await upsertTelegramUser(tgUser)
       } catch (err) {
-        console.error('[userLoader] upsert error:', err)
+        console.error(`${TAG}: upsert error: `, err)
         res.status(500).json({ error: 'Internal server error' })
         return
       }
@@ -64,7 +65,7 @@ export function loadUser(options: { requireInitData: boolean }) {
       try {
         dbUser = await getUserByTelegramId(jwtUser.id.toString())
       } catch (err) {
-        console.error('[userLoader] fetch error:', err)
+        console.error(`${TAG}: fetch error: `, err)
         res.status(500).json({ error: 'Internal server error' })
         return
       }

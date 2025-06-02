@@ -1,12 +1,12 @@
 import { Request, Response, NextFunction } from 'express'
 import jwt, { TokenExpiredError } from 'jsonwebtoken'
-import { UserJwtPayload } from '../types/auth'
+import { TelegramUser } from '../types/telegram'
 import { parseCookies } from '../utils/cookies'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecret'
 
 /**
- * Middleware to authenticate a user based on a JWT stored in cookies.
+ * Middleware to authenticate a user based on a JWT stored in cookies/request header.
  */
 export function authenticateJWT(req: Request, res: Response, next: NextFunction) {
   // First try to read JWT from httpOnly cookie
@@ -25,7 +25,7 @@ export function authenticateJWT(req: Request, res: Response, next: NextFunction)
   }
 
   try {
-    const user = jwt.verify(token, JWT_SECRET) as UserJwtPayload
+    const user = jwt.verify(token, JWT_SECRET) as TelegramUser
     req.user = user
     next()
   } catch (err: unknown) {

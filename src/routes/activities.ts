@@ -2,8 +2,8 @@ import express, { Request, Response } from 'express'
 import { authenticateJWT } from '../middleware/auth'
 import { loadUser } from '../middleware/userLoader'
 import { getAvailableActivities, getActivityById } from '../services/activity'
-import { incrementUserBalance } from '../services/user'
-import { canPerformActivity, recordActivity } from '../services/userActivity'
+import { canPerformActivity } from '../services/userActivity'
+import { rewardActivity, ActivityUnavailableError, ActivityNotFoundError } from '../services/activityRewards'
 
 const router = express.Router()
 
@@ -79,36 +79,29 @@ router.post(
   authenticateJWT,
   loadUser({ requireInitData: false }),
   async (req: Request, res: Response) => {
-    // Expect body: { id: string, args?: Record<string, any> }
     const { id, args } = req.body as { id?: string; args?: Record<string, any> }
     if (!id || typeof id !== 'string') {
       res.status(400).json({ error: 'Missing activity id' })
       return
     }
-
-    const activity = getActivityById(id)
-    if (!activity) {
-      res.status(404).json({ error: 'Activity not found' })
-      return
-    }
-
     const user = req.dbUser!
     try {
-      const { available, nextAvailableAt, reason } = await canPerformActivity(user.id, activity, args)
-      if (!available) {
-        // Business logic: activity not available
-        res.status(409).json({ error: reason || 'Activity not available', nextAvailableAt })
+      const result = await rewardActivity(user.id, id, args)
+      res.json({ user: result.user, activity: result.activity, availability: result.availability })
+    } catch (err: unknown) {
+      if (err instanceof ActivityUnavailableError) {
+        console.log('err', err.message);
+        res.status(409).json({ error: err.message, nextAvailableAt: err.nextAvailableAt })
         return
       }
-      await recordActivity(user.id, activity.id, args)
-      const updatedUser = await incrementUserBalance(user.id, activity.reward)
-      // Re-check availability for response
-      const next = await canPerformActivity(user.id, activity)
-      res.json({ user: updatedUser, activity, availability: next })
-    } catch (err) {
+      if (err instanceof ActivityNotFoundError) {
+        res.status(404).json({ error: err.message })
+        return
+      }
       console.error('Error in rewarding user:', err)
       res.status(500).json({ error: 'Internal server error' })
     }
-  })
+  }
+)
 
 export default router
