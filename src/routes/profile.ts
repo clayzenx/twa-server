@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express'
 import { authenticateJWT } from '../middleware/jwtAuthentication'
 import { loadUser } from '../middleware/userLoader'
+import { prisma } from '../db'
 
 const router = express.Router()
 
@@ -13,8 +14,18 @@ router.get(
   '/',
   authenticateJWT,
   loadUser({ requireInitData: true }),
-  (req: Request, res: Response) => {
-    res.json(req.dbUser)
+  async (req: Request, res: Response) => {
+    const user = req.dbUser
+
+    // Include player data in the response
+    const userWithPlayer = await prisma.user.findUnique({
+      where: { id: user?.id },
+      include: { player: true }
+    })
+
+    console.log('/profile', userWithPlayer);
+
+    res.json(userWithPlayer)
   }
 )
 

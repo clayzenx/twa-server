@@ -8,6 +8,7 @@ dotenv.config()
 import authRoutes from './routes/auth'
 import profileRoutes from './routes/profile'
 import activitiesRoutes from './routes/activities'
+import playerRoutes from './routes/player'
 
 const FRONTEND = process.env.FRONTEND_ORIGIN
 
@@ -15,7 +16,9 @@ const FRONTEND = process.env.FRONTEND_ORIGIN
 const ORIGINS = [
   FRONTEND,
   'http://localhost:4000',
+  'http://localhost:5173',
   'https://clayzenx.github.io',
+  'https://archiveplay.github.io'
 ]
 
 const app = express()
@@ -45,6 +48,7 @@ app.use(bodyParser.json())
 app.use('/auth', authRoutes)
 app.use('/profile', profileRoutes)
 app.use('/activities', activitiesRoutes)
+app.use('/player', playerRoutes)
 
 app.get('/', (req, res) => {
   res.send('Backend is running!')

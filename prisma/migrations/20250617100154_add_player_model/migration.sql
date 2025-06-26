@@ -1,0 +1,23 @@
+-- CreateTable
+CREATE TABLE "Player" (
+    "id" SERIAL NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "health" INTEGER NOT NULL DEFAULT 100,
+    "maxHealth" INTEGER NOT NULL DEFAULT 100,
+    "damage" INTEGER NOT NULL DEFAULT 10,
+    "attackRange" DOUBLE PRECISION NOT NULL DEFAULT 1.5,
+    "attackSpeed" DOUBLE PRECISION NOT NULL DEFAULT 1.0,
+    "movementSpeed" DOUBLE PRECISION NOT NULL DEFAULT 5.0,
+    "level" INTEGER NOT NULL DEFAULT 1,
+    "experience" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Player_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Player_userId_key" ON "Player"("userId");
+
+-- AddForeignKey
+ALTER TABLE "Player" ADD CONSTRAINT "Player_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
