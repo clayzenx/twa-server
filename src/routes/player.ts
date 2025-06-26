@@ -44,7 +44,6 @@ router.post(
         }
       })
 
-      console.log('newPlayer', newPlayer);
       res.json(newPlayer)
     } catch (error) {
       console.error('Error initializing player:', error)

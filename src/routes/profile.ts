@@ -23,8 +23,6 @@ router.get(
       include: { player: true }
     })
 
-    console.log('/profile', userWithPlayer);
-
     res.json(userWithPlayer)
   }
 )
