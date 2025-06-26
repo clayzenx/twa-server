@@ -8,7 +8,7 @@
     "jsonwebtoken": "^9.0.2"
   },
   "scripts": {
-    "dev": "ts-node-dev src/index.ts"
+    "dev": "NODE_ENV=development ts-node-dev src/index.ts"
   },
   "devDependencies": {
     "@types/cors": "^2.8.18",

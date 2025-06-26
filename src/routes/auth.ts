@@ -7,11 +7,16 @@ import { parseCookies } from '../utils/cookies'
 const router = Router()
 
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecret'
+const IS_PROD = process.env.NODE_ENV === 'production';
 
 router.post('/', async (req: Request, res: Response, _next: NextFunction) => {
   const { initData } = req.body
 
-  if (!initData || !verifyInitData(initData)) {
+  if (!initData) {
+    res.status(401).json({ error: 'initData is not provided' })
+    return
+  }
+  if (IS_PROD && !verifyInitData(initData)) {
     res.status(401).json({ error: 'Invalid initData' })
     return
   }
