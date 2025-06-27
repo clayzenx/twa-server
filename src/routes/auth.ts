@@ -10,7 +10,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'supersecret'
 const IS_PROD = process.env.NODE_ENV === 'production';
 
 router.post('/', async (req: Request, res: Response, _next: NextFunction) => {
-  const { initData } = req.body
+  const initData = req.headers['x-telegram-initdata'] as string
 
   if (!initData) {
     res.status(401).json({ error: 'initData is not provided' })
